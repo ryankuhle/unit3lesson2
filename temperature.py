@@ -1,4 +1,6 @@
 import datetime
+import requests
+from pandas.io.json import json_normalize
 
 #API Key for developer.forecast.io
 APIKey = 'b5904cff597e966ee9aa0d32e5a0e569'
@@ -19,6 +21,9 @@ TimeNow = datetime.datetime.now()
 TimeNow = TimeNow.strftime('%Y-%m-%dT%H:%M:%S%z')
 
 URLAPICall = BaseAPICall + '/' + cities['Austin'] + ',' + TimeNow
-print URLAPICall
 
-#You can use the datetime.timedelta() function to subtract or add time to a date. In this case, we'll be subtracting 30 days from the current date to get our start date and then iterating through until the present day. We do that like this start_date = datetime.datetime.now() - datetime.timedelta(days=30). This will subtract 30 days from the current day.
+r = requests.get(URLAPICall)
+df = json_normalize(r.json()['daily']['data'])
+
+#print highest temperature today for Austin
+print "The high temperature in Austin today will be: %s" % df['temperatureMax']
