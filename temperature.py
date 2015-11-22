@@ -1,6 +1,7 @@
 import datetime
 import requests
 from pandas.io.json import json_normalize
+import sqlite3 as lite
 
 #API Key for developer.forecast.io
 APIKey = 'b5904cff597e966ee9aa0d32e5a0e569'
@@ -24,6 +25,17 @@ URLAPICall = BaseAPICall + '/' + cities['Austin'] + ',' + TimeNow
 
 r = requests.get(URLAPICall)
 df = json_normalize(r.json()['daily']['data'])
+#how to call maximum temperature: df['temperatureMax']
 
-#print highest temperature today for Austin
-print "The high temperature in Austin today will be: %s" % df['temperatureMax']
+
+def createStorage():
+    con = lite.connect('weather.db')
+    cur = con.cursor()
+    with con:
+        cur.execute('CREATE TABLE max_temps (id INT PRIMARY KEY, city TEXT, date TEXT, highTemp NUMERIC)')
+    print "TABLE 'max_temps' created in SQLite3 DB 'weather.db'"
+
+createStorage()
+
+#Write a script that takes each city and queries every day for the past 30 days (Hint: You can use the datetime.timedelta(days=1) to increment the value by day)
+#Save the max temperature values to the table, keyed on the date. You can leave the date in Unix time or convert to a string.
