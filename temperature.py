@@ -6,6 +6,21 @@ import sqlite3 as lite
 #API Key for developer.forecast.io
 APIKey = 'b5904cff597e966ee9aa0d32e5a0e569'
 
+def createStorage():
+    con = lite.connect('weather.db')
+    cur = con.cursor()
+    with con:
+        cur.execute('CREATE TABLE max_temps (id INT PRIMARY KEY, city TEXT, date TEXT, highTemp NUMERIC)')
+    print "TABLE 'max_temps' created in SQLite3 DB 'weather.db'"
+
+def getMaxTemp(city, date):
+    #Takes city name and date as arguments, runs API query, returns Max temperature
+    print city
+
+def injectData(city, date, maxTemp):
+    #Takes city name, date, temperature as arguments and injects them into max_temps table
+
+
 #Base API call
 BaseAPICall = 'https://api.forecast.io/forecast/' + APIKey
 
@@ -25,17 +40,14 @@ URLAPICall = BaseAPICall + '/' + cities['Austin'] + ',' + TimeNow
 
 r = requests.get(URLAPICall)
 df = json_normalize(r.json()['daily']['data'])
-#how to call maximum temperature: df['temperatureMax']
 
+if table doesn't exist:
+    createStorage()
 
-def createStorage():
-    con = lite.connect('weather.db')
-    cur = con.cursor()
-    with con:
-        cur.execute('CREATE TABLE max_temps (id INT PRIMARY KEY, city TEXT, date TEXT, highTemp NUMERIC)')
-    print "TABLE 'max_temps' created in SQLite3 DB 'weather.db'"
+for city in cities:
+    for x in range(0, 30):
+        #create date string to use
+        maxTemp = getMaxTemp(city, date)
+        injectData(city, date, maxTemp)
 
-createStorage()
-
-#Write a script that takes each city and queries every day for the past 30 days (Hint: You can use the datetime.timedelta(days=1) to increment the value by day)
-#Save the max temperature values to the table, keyed on the date. You can leave the date in Unix time or convert to a string.
+print "Done!"
