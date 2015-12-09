@@ -1,53 +1,40 @@
 import datetime
 import requests
-from pandas.io.json import json_normalize
 import sqlite3 as lite
+from pandas.io.json import json_normalize
+import json
 
-#API Key for developer.forecast.io
-APIKey = 'b5904cff597e966ee9aa0d32e5a0e569'
+API_KEY = 'b5904cff597e966ee9aa0d32e5a0e569'
+API_CALL = 'https://api.forecast.io/forecast/' + API_KEY + '/'
 
-def createStorage():
-    con = lite.connect('weather.db')
-    cur = con.cursor()
-    with con:
-        cur.execute('CREATE TABLE max_temps (id INT PRIMARY KEY, city TEXT, date TEXT, highTemp NUMERIC)')
-    print "TABLE 'max_temps' created in SQLite3 DB 'weather.db'"
-
-def getMaxTemp(city, date):
-    #Takes city name and date as arguments, runs API query, returns Max temperature
-    print city
-
-def injectData(city, date, maxTemp):
-    #Takes city name, date, temperature as arguments and injects them into max_temps table
-
-
-#Base API call
-BaseAPICall = 'https://api.forecast.io/forecast/' + APIKey
-
-#Dictionary of cities and locations
-cities = { "Austin": '30.303936,-97.754355',
-           "Chicago": '41.837551,-87.681844',
-           "Miami": '25.775163,-80.208615',
-           "New York": '40.663619,-73.938589',
-           "San Francisco": '37.727239,-123.032229'
+cities = { "austin": '30.303936,-97.754355',
+           "chicago": '41.837551,-87.681844',
+           "miami": '25.775163,-80.208615',
+           "new_york": '40.663619,-73.938589',
+           "san_francisco": '37.727239,-123.032229'
          }
 
-#Current time
-TimeNow = datetime.datetime.now()
-TimeNow = TimeNow.strftime('%Y-%m-%dT%H:%M:%S%z')
+END_DATE = datetime.datetime.now()
+QUERY_DATE = END_DATE - datetime.timedelta(days=30)
 
-URLAPICall = BaseAPICall + '/' + cities['Austin'] + ',' + TimeNow
+con = lite.connect('weather.db')
+cur = con.cursor()
+cities.keys()
 
-r = requests.get(URLAPICall)
-df = json_normalize(r.json()['daily']['data'])
+#with con:
+#    cur.execute('CREATE TABLE daily_temp ( day_of_reading INT, austin REAL, chicago REAL, miami REAL, new_york REAL, san_francisco REAL);')
 
-if table doesn't exist:
-    createStorage()
+#with con:
+#    while QUERY_DATE < END_DATE:
+#        cur.execute("INSERT INTO daily_temp(day_of_reading) VALUES (?)", (int(QUERY_DATE.strftime('%s')),))
+#        QUERY_DATE += datetime.timedelta(days=1)
 
-for city in cities:
-    for x in range(0, 30):
-        #create date string to use
-        maxTemp = getMaxTemp(city, date)
-        injectData(city, date, maxTemp)
+for k,v in cities.iteritems():
+    QUERY_DATE = END_DATE - datetime.timedelta(days=30)
+    while QUERY_DATE < END_DATE:
+        r = requests.get(API_CALL + v + ',' +  QUERY_DATE.strftime('%Y-%m-%dT12:00:00'))
+        with con:
+            cur.execute('UPDATE daily_temp SET ' + k + ' = ' + str(r.json()['daily']['data'][0]['temperatureMax']) + ' WHERE day_of_reading = ' + QUERY_DATE.strftime('%s'))
+        QUERY_DATE += datetime.timedelta(days=1)
 
-print "Done!"
+con.close()
